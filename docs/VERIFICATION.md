@@ -10,6 +10,7 @@
 | 图片导入 | 三张真实 JPEG 导入相册，收据含 SHA-256、尺寸、native_generation 来源；旅行包状态为 images_attached。 |
 | WorkBuddy 文件夹入口 | 在本机 WorkBuddy 5.6.2、Deepseek-V4.1-Flash 新建独立任务，读取 START.md、SKILL.md 后完成大理、人和猫同框、三张、国庆、豆包提示词请求。 |
 | WorkBuddy 实际文件 | 读回三条中文提示词、trip.json、旅行包.md、相册.html，状态 prompts_only，三张均引用人物与猫身份。第三张由 Agent 按导演手册改成小院同框休息照。测试文件属于本地 output，不发布用户工作区内容。 |
+| 公开 GitHub 入口 | 独立 Agent 仅从公开仓库读取 START.md、SKILL.md、导演手册、目的地数据与平台指南，实际完成京都听雨、三张、不露脸、即梦中文提示词，无需追问或本地安装。这项测试不是 WorkBuddy 的远程入口实测。 |
 | 独立 Agent 前向试用 | 无 Python、无图像工具场景。发现并修复人宠模式冲突、强制提问和无文件权限仍承诺相册的问题。 |
 | Python 回归测试 | 覆盖模式的参考图规则、独立中文提示词、参数失败、可复现抽签、已有文件保护、图片导入收据与历史、HTML 转义、图片路径边界、假图片拒绝、适配器失败停止且不泄漏上游日志。 |
 | Skill 格式 | 官方 skill-creator quick_validate.py 通过。校验器所需 PyYAML 仅在本地开发虚拟环境安装；产品运行不需要第三方 Python 包。 |
