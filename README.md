@@ -8,7 +8,7 @@
 
 <img src="assets/paris-01.jpg" alt="沙发旅行社巴黎样片：虚构人物的旅行照片" width="360">
 
-[下载 Skill ZIP](https://github.com/HeiGeAi/sofa-travel/releases/download/v1.0.0/sofa-travel-1.0.0.zip) · [阅读 Agent 入口](START.md) · [验证记录](docs/VERIFICATION.md)
+[下载 Skill ZIP](https://github.com/HeiGeAi/sofa-travel/releases/download/v1.1.0/sofa-travel-1.1.0.zip) · [阅读 Agent 入口](START.md) · [验证记录](docs/VERIFICATION.md)
 
 图为本项目实际生成的样片，人物完全虚构。软件与提示词免费，第三方生图费用或免费额度按所用工具规则。
 
@@ -54,11 +54,23 @@ GitHub 不直接执行 HTML。先下载仓库 ZIP，解压后双击 `site/index.
 
 样片通过原生生图工具生成；不同平台的身份保持、画幅、速度与费用会不同。不宣称所有平台效果相同。
 
+## 女性旅行样例：在京都，把半天借给雨
+
+同一位虚构成年女性，三张都使用同一张原始参考照片。河边撑伞、雨巷回眸与茶馆小憩，保留砖红开衫、齐肩发型和自然肤质。
+
+| 河边听雨 | 雨巷慢走 | 窗边喝茶 |
+| :--- | :--- | :--- |
+| ![京都鸭川撑伞女性](assets/kyoto-01.jpg) | ![同一女性雨巷回眸](assets/kyoto-02.jpg) | ![同一女性茶馆窗边休息](assets/kyoto-03.jpg) |
+
+[原始女性参考照](assets/woman-reference.jpg) · [三张完整中文提示词](examples/kyoto-rain/旅行包.md) · [样片来源](assets/PROVENANCE.md)
+
+这些是原生工具实际生成的创作样片，不代表豆包、即梦已经达到相同效果。女性用户同样可以选择城市散步、山间徒步、宠物同行等模式，无需单独的女性专用提示词。
+
 ## 三种入口
 
 **零安装。** Agent 读取仓库中的 START.md 与 SKILL.md，按需读取参考文件。只有网页读取能力时也可按文件逐个读；不能联网就提供 ZIP。仅能聊天时，使用本地玩法手帐里的完整中文提示词。
 
-**导入 Skill。** 运行 `python3 scripts/package.py` 得到 `dist/sofa-travel-1.0.0.zip`，或下载发布提供的同名 ZIP。包内根目录即 SKILL.md。WorkBuddy 使用当前版本的本地技能包导入入口，详见 [兼容指南](docs/COMPATIBILITY.md)。
+**导入 Skill。** 运行 `python3 scripts/package.py` 得到 `dist/sofa-travel-1.1.0.zip`，或下载发布提供的同名 ZIP。包内根目录即 SKILL.md。WorkBuddy 使用当前版本的本地技能包导入入口，详见 [兼容指南](docs/COMPATIBILITY.md)。
 
 **命令行。** Python 3.10+，不需要 pip 安装依赖：
 

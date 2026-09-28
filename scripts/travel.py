@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 STYLES = {
     "candid": ("朋友随手拍", "普通手机后置摄像头拍摄的旅行抓拍感，构图略有留白，肤质自然，清晰但不过度锐化，不使用影楼打光或过度虚化。"),
     "film": ("像一帧电影", "克制的旅行电影剧照感，自然光，柔和反差与细腻颗粒，色彩统一但不浓艳，保留环境细节，不添加电影标题或字幕。"),

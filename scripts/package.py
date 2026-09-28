@@ -10,6 +10,9 @@ FILES = [".gitignore", "SKILL.md", "START.md", "README.md", "LICENSE", "THIRD_PA
 FILES += ["AGENTS.md", "CONTRIBUTING.md", "docs/VERIFICATION.md", "assets/PROVENANCE.md", "assets/reference.jpg", "assets/paris-01.jpg", "assets/paris-02.jpg", "assets/paris-03.jpg", "scripts/build_site.py", "scripts/package.py", "site/template.html", "tests/test_travel.py", "tests/test_package.py"]
 FILES += ["examples/paris-weekend/" + name for name in ["旅行包.md", "相册.html", "trip.json", "prompts/01.txt", "prompts/02.txt", "prompts/03.txt", "images/01-322656312e25.jpg", "images/02-1daa36643ad0.jpg", "images/03-982082306b63.jpg"]]
 
+FILES += ["assets/woman-reference.jpg", "assets/kyoto-01.jpg", "assets/kyoto-02.jpg", "assets/kyoto-03.jpg"]
+
+FILES += ["examples/kyoto-rain/" + name for name in ['旅行包.md', '相册.html', 'trip.json', 'reference-prompt.txt', 'prompts/01.txt', 'prompts/02.txt', 'prompts/03.txt', 'images/01-ff7a1afe89c8.jpg', 'images/02-00f5fcde2a58.jpg', 'images/03-455c13ecc321.jpg']]
 
 def package():
     for name in FILES:

@@ -16,7 +16,7 @@ def build():
     data = {"destinations": destinations(), "packs": packs, "modes": MODES, "styles": {k: v[0] for k, v in STYLES.items()}, "platforms": PLATFORMS, "guides": {f"{p}:{m}": platform_help(p, m) for p in PLATFORMS for m in MODES}, "repairs": {k: {"title": v[0], "prompt": v[1]} for k, v in REPAIRS.items()}}
     template = (ROOT / "site/template.html").read_text(encoding="utf-8")
     template = template.replace("__TRAVEL_DATA__", json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c"))
-    for name, filename in {"REFERENCE": "reference.jpg", "PARIS": "paris-01.jpg", "STREET": "paris-02.jpg", "FOOD": "paris-03.jpg"}.items():
+    for name, filename in {"REFERENCE": "reference.jpg", "PARIS": "paris-01.jpg", "STREET": "paris-02.jpg", "FOOD": "paris-03.jpg", "WOMAN_REFERENCE": "woman-reference.jpg", "KYOTO_RIVER": "kyoto-01.jpg", "KYOTO_STREET": "kyoto-02.jpg", "KYOTO_TEA": "kyoto-03.jpg"}.items():
         path = ROOT / "assets" / filename
         if not path.is_file():
             raise SystemExit(f"Missing real demonstration image: {path.name}. Build stops; no stock fallback.")
