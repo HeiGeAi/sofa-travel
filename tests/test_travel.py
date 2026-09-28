@@ -1,6 +1,7 @@
 """Behavioral regression tests. No network or paid image requests."""
 import hashlib
 import json
+import os
 import struct
 import subprocess
 import sys
@@ -56,6 +57,11 @@ class TravelTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             travel.resolve_destination("不存在")
         self.assertEqual(travel.make_pack(seed=42), travel.make_pack(seed=42))
+
+    def test_cli_chinese_output_survives_non_utf8_pipe(self):
+        result = subprocess.run([sys.executable, str(ROOT / "scripts/travel.py"), "plan", "--destination", "京都", "--output", str(self.root / "京都")], env={**os.environ, "PYTHONIOENCODING": "ascii"}, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr.decode("utf-8"))
+        self.assertEqual(json.loads(result.stdout.decode("utf-8"))["destination"], "京都")
 
     def test_real_import_status_history_and_portability(self):
         folder = self.save()

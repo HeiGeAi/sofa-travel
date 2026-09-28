@@ -5,7 +5,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
-from travel import attach, image_info
+from travel import attach, image_info, configure_console
 
 
 def prepare(trip, skill_dir, references, selection="first", python=sys.executable):
@@ -41,6 +41,7 @@ def prepare(trip, skill_dir, references, selection="first", python=sys.executabl
 
 
 def main():
+    configure_console()
     parser = argparse.ArgumentParser(description="调用用户已有的 heige-image，默认仅检查计划")
     parser.add_argument("--trip", required=True)
     parser.add_argument("--skill-dir", required=True)

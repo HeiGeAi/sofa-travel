@@ -220,7 +220,15 @@ def attach(folder, shot_id, image, source="user_import"):
     return dest
 
 
+def configure_console():
+    """Agent subprocess pipes on Windows may default to a non-Chinese code page."""
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+
+
 def main():
+    configure_console()
     parser = argparse.ArgumentParser(description="沙发旅行社：免费中文旅行提示词与本地相册")
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("list", help="查看目的地")
