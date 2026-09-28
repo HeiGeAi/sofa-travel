@@ -2,7 +2,7 @@
 name: sofa-travel
 description: 沙发旅行社。用户想在家假装旅游、用自己的照片做旅行写真、生成中文旅行生图提示词、制作假期相册，或带朋友与宠物虚拟环游世界时使用。按目的地编排成套镜头，可交付豆包与即梦中文提示词，或使用当前 Agent 的真实生图能力制作相册。
 metadata:
-  version: 1.1.0
+  version: 1.1.1
   author: HeiGeAi
 ---
 
