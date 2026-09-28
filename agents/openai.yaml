@@ -1,0 +1,7 @@
+interface:
+  display_name: "沙发旅行社"
+  short_description: "人没出门，相册先环游世界。中文旅行提示词、成套镜头与可选生图。"
+  default_prompt: "用 $sofa-travel 带我去一个意想不到的地方，先给三张旅行照片的中文提示词。"
+  brand_color: "#1f3f73"
+policy:
+  allow_implicit_invocation: true

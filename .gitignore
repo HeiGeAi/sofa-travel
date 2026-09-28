@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.DS_Store
+.env
+.env.*
+!.env.example
+output/
+dist/
+test-results/
+node_modules/
+.venv/
+assets/reference.png
+.playwright-cli/
