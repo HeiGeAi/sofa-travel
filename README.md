@@ -6,7 +6,7 @@
 
 免费、开源、中文。给 Codex、Claude Code、WorkBuddy 等能读文件的 Agent 使用。没有生图工具也能玩：拿到完整中文提示词，复制到豆包、即梦等官方工具即可继续。
 
-![沙发旅行社巴黎样片：虚构人物的旅行照片](assets/paris-01.jpg)
+<img src="assets/paris-01.jpg" alt="沙发旅行社巴黎样片：虚构人物的旅行照片" width="360">
 
 [下载 Skill ZIP](https://github.com/HeiGeAi/sofa-travel/releases/download/v1.0.0/sofa-travel-1.0.0.zip) · [阅读 Agent 入口](START.md) · [验证记录](docs/VERIFICATION.md)
 
