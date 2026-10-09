@@ -6,7 +6,7 @@ import zipfile
 from pathlib import Path
 from travel import ROOT, VERSION
 
-FILES = [".gitignore", "SKILL.md", "START.md", "README.md", "LICENSE", "THIRD_PARTY_NOTICES.md", "agents/openai.yaml", "data/destinations.json", "scripts/travel.py", "scripts/generate.py", "references/director.md", "references/providers.md", "references/repairs.md", "docs/COMPATIBILITY.md", "site/index.html"]
+FILES = ["requirements-image.txt", "requirements-jpeg.txt", "tests/test_image_import.py", ".gitignore", "SKILL.md", "START.md", "README.md", "LICENSE", "THIRD_PARTY_NOTICES.md", "agents/openai.yaml", "data/destinations.json", "scripts/travel.py", "scripts/generate.py", "references/director.md", "references/providers.md", "references/repairs.md", "docs/COMPATIBILITY.md", "site/index.html"]
 FILES += ["AGENTS.md", "CONTRIBUTING.md", "docs/VERIFICATION.md", "assets/PROVENANCE.md", "assets/reference.jpg", "assets/paris-01.jpg", "assets/paris-02.jpg", "assets/paris-03.jpg", "scripts/build_site.py", "scripts/package.py", "site/template.html", "tests/test_travel.py", "tests/test_package.py"]
 FILES += ["examples/paris-weekend/" + name for name in ["旅行包.md", "相册.html", "trip.json", "prompts/01.txt", "prompts/02.txt", "prompts/03.txt", "images/01-322656312e25.jpg", "images/02-1daa36643ad0.jpg", "images/03-982082306b63.jpg"]]
 
