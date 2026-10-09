@@ -72,7 +72,7 @@ GitHub 不直接执行 HTML。先下载仓库 ZIP，解压后双击 `site/index.
 
 **导入 Skill。** 运行 `python3 scripts/package.py` 得到 `dist/sofa-travel-1.1.1.zip`，或下载发布提供的同名 ZIP。包内根目录即 SKILL.md。WorkBuddy 使用当前版本的本地技能包导入入口，详见 [兼容指南](docs/COMPATIBILITY.md)。
 
-**命令行。** Python 3.10+，不需要 pip 安装依赖：
+**命令行。** Python 3.10+，生成中文提示词旅行包不需要 pip 安装依赖：
 
 ```bash
 python3 scripts/travel.py list
@@ -81,11 +81,16 @@ python3 scripts/travel.py plan --destination 冰岛 --count 6 --platform doubao 
 
 输出旅行包、独立提示词和相册。`--mode faceless` 不露脸，`--mode duo` 双人，`--mode pet` 宠物独照，`--mode pet_pair` 人与宠物同框；`--style film` 电影感，`--style playful` 幽默；`--destination surprise --seed 42` 可复现抽签。
 
-生成工具返回照片后可导入：
+生成工具返回照片后可导入。此步骤需要 Pillow 完整解码器（只需安装一次）；未安装时仍可生成提示词旅行包：
 
 ```bash
+python3 -m pip install -r requirements-image.txt
 python3 scripts/travel.py attach --trip output/iceland --shot 01 --image /path/to/photo.png
 ```
+
+JPEG 导入另外运行 `python3 -m pip install -r requirements-jpeg.txt`，安装 simplejpeg 严格解码器及 NumPy（增加数十 MB 安装体积；PNG 单独使用时无需安装）。Pillow 会容忍部分 JPEG 截断，JPEG 因此必须通过额外的严格解码，不能静默降级。
+
+图片导入支持静态 PNG（含隔行）和 JPEG，最多 32 MiB、3200 万像素；解码像素缓冲上限 128 MiB（不是整个进程内存上限）。不接受动画、GIF 或 WebP。先验证结构并完整解码，再更新相册与回执；校验失败或可恢复的写入错误保留已有图片、历史和回执。每个文件使用原子替换，普通 I/O 失败会回滚；断电或进程强制终止时不保证跨文件事务。完整解码不替代目视质量检查。
 
 输出目录里的私人照片不应提交 Git。默认 output 已被忽略；打包器仅收录明确列出的公共文件。
 

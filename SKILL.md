@@ -68,10 +68,11 @@ python3 scripts/travel.py plan --destination 京都 --mode portrait --style cand
 得到真实图片后先查看：是否同一个人、地标与季节是否合理、手和姿态是否自然、光线透视是否融合。照片过关再导入相册：
 
 ```bash
+python3 -m pip install -r requirements-image.txt
 python3 scripts/travel.py attach --trip output/kyoto-first-trip --shot 01 --image /absolute/path/to/result.png --source native_generation
 ```
 
-导入命令仅验证文件头、尺寸并记录哈希，不证明审美或身份通过。相册完整不等于质量通过。读取真实图片作目视检查，不仅看脚本返回。
+导入需要可选 Pillow 解码器；JPEG 还需 `python3 -m pip install -r requirements-jpeg.txt` 安装 simplejpeg 严格解码器及 NumPy（PNG 无需）；支持静态 PNG/JPEG，单张不超过 32 MiB、3200 万像素。验证结构和完整像素解码后才记录哈希、更新相册；失败时保留原图片、历史和回执。不安装解码器也可继续生成中文提示词旅行包。解码通过不证明审美或身份通过。相册完整不等于质量通过。读取真实图片作目视检查，不仅看脚本返回。
 
 需要修改时读 [修图手册](references/repairs.md)。先确定单个问题，保留原图，另存结果。局部问题不改整套风格。
 
