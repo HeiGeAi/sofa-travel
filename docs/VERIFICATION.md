@@ -59,15 +59,22 @@
 * heige-image 适配器经过本地命令构造、失败处理测试和针对本机已安装版本的 dry-run，尚未用真实 API 密钥付费跑通。原生生图样例不能代替这一验证。
 * Windows、macOS、Ubuntu 的 Python 3.10 自动测试、网页构建与发布包构建已在 GitHub Actions 全部通过（[运行记录](https://github.com/HeiGeAi/sofa-travel/actions/runs/36397980843)）。首次 Windows 测试发现中文管道输出编码失败，已修复，并加入非 UTF-8 输出管道回归测试。
 * Claude Code、Windows 和 Linux 的交互式 Agent 宿主尚未实际试玩。三平台 CI 通过不代表这些宿主的生图能力通过。
-* 图片导入仅检查格式、尺寸等基本结构与文件哈希，不做完整解码、内容审核或自动身份判定。目视检查由 Agent 与用户完成。
+* 图片导入现在检查完整解码、格式、尺寸与文件哈希；不做内容审核或自动身份判定。目视检查由 Agent 与用户完成。
 * 本项目没有账号、云相册、代理接口、永久免费生图承诺，也不会把素材图库图片或空文件标记为生成成功。
 
 ## 复验命令
 
 ```bash
+python3 -m pip install -r requirements-jpeg.txt
 python3 -m unittest discover -s tests -v
 python3 scripts/build_site.py
 python3 scripts/package.py
 ```
 
 开发时生成的 output、dist、缓存与私人图片不进入 Git。发布 ZIP 只收录 scripts/package.py 中列出的公共文件。
+
+## 2026-10-09 图片解码回归
+
+云端 Linux / Python 3.12 / Pillow 12.3.0 / simplejpeg 1.9.0 / NumPy 2.3.5 离线验证了真实 PNG/JPEG 导入、损坏 PNG/JPEG 拒绝、旧图片与历史保留、解码器缺失、资源上限、来源文件变化、暂存失败和每个文件发布步骤失败后的回滚。`python -S` 子进程验证了没有第三方包时仍可生成提示词旅行包。此轮没有付费生图调用，也未重测 Windows/macOS 或交互式宿主；历史三平台 CI 记录不代表这次依赖变更已在三平台通过。
+
+独立复核发现 Pillow 可恢复缺失 JPEG 熵数据，因此增加了严格 JPEG 解码器，并覆盖保留 EOI 的零熵扫描、截短 10/30/100/200 字节的扫描、baseline/progressive 和 CMYK 合法 JPEG。此校验不承诺检测所有可正常解码的数据改动。

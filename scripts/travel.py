@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
-"""Sofa Travel: deterministic Chinese travel packs, Python standard library only."""
+"""Sofa Travel: standard-library prompt core with optional image decoders."""
 from __future__ import annotations
 
 import argparse
 import base64
 import hashlib
 import html
+import io
 import json
+import os
 import random
 import re
 import shutil
-import struct
 import sys
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -126,7 +128,7 @@ def markdown(pack):
     return "\n".join(lines)
 
 
-def render_album(pack, folder):
+def render_album(pack, folder, *, image_overrides=None):
     """Portable single-file album: local user images embedded, no outgoing requests."""
     e = html.escape
     cards = []
@@ -136,8 +138,11 @@ def render_album(pack, folder):
             path = (folder / shot["image"]).resolve()
             if not path.is_relative_to(folder.resolve()):
                 raise ValueError("相册图片路径越出旅行包目录。")
-            mime, _, _ = image_info(path)
-            picture = f'<img alt="{e(shot["title"])}，AI 旅行创作" src="data:{mime};base64,{base64.b64encode(path.read_bytes()).decode()}">'
+            if image_overrides and shot["image"] in image_overrides:
+                payload, (mime, _, _) = image_overrides[shot["image"]]
+            else:
+                payload, (mime, _, _) = read_image(path)
+            picture = f'<img alt="{e(shot["title"])}，AI 旅行创作" src="data:{mime};base64,{base64.b64encode(payload).decode()}">'
         cards.append(f'<article>{picture}<div class="body"><span>{shot["id"]} / {e(shot["scene"])}</span><h2>{e(shot["title"])}</h2><details><summary>打开完整中文提示词</summary><textarea readonly aria-label="{e(shot["title"])}的中文提示词">{e(shot["prompt"])}</textarea><button onclick="copyText(this.previousElementSibling,this)">复制提示词</button></details></div></article>')
     return '''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>沙发旅行社 · ''' + e(pack["title"]) + '''</title><style>
 *{box-sizing:border-box}body{margin:0;padding:32px 24px 64px;background:#faf7ee;color:#1e2a38;font:17px/1.7 "PingFang SC","Microsoft YaHei",sans-serif}main{max-width:1100px;margin:auto}header{padding:40px 0}h1{font-size:clamp(32px,5vw,60px);line-height:1.2;color:#1f3f73}h2{margin:8px 0}header p{max-width:700px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px}article{background:#fffdf6;border:1px solid #d5dbe6;border-radius:12px;overflow:hidden}img{width:100%;display:block;aspect-ratio:3/4;object-fit:contain;background:#f0eee6}.body{padding:24px}span,small{font-size:13px;color:#5f5a50}small{display:block}.empty{aspect-ratio:3/2;display:flex;flex-direction:column;align-items:center;justify-content:center;background:repeating-linear-gradient(0deg,transparent,transparent 23px,#d5dbe6 24px)}textarea{width:100%;height:300px;margin:16px 0;padding:16px;font:15px/1.7 inherit;border:1px solid #d5dbe6;resize:vertical}button{background:#1f3f73;color:#fbf8ef;border:0;border-radius:8px;padding:14px 20px;font:inherit;cursor:pointer}summary{cursor:pointer}footer{margin-top:48px;white-space:pre-line}button:focus-visible,summary:focus-visible{outline:3px solid #1f3f73;outline-offset:4px}@media(max-width:650px){.grid{grid-template-columns:1fr}body{padding:16px}header{padding:24px 0}}
@@ -160,37 +165,131 @@ def save_pack(pack, folder):
         (prompts / (shot["id"] + ".txt")).write_text(shot["prompt"] + "\n", encoding="utf-8")
 
 
-def image_info(path):
-    path = Path(path)
-    if path.stat().st_size > 32 * 1024 * 1024:
-        raise ValueError("单张图片最大三十二兆字节。")
-    b = path.read_bytes()
-    if b.startswith(b"\x89PNG\r\n\x1a\n") and len(b) > 32 and b[12:16] == b"IHDR":
-        if b"IEND" not in b[-16:]:
+MAX_IMAGE_BYTES = 32 * 1024 * 1024
+MAX_IMAGE_PIXELS = 32_000_000
+MAX_DECODED_BYTES = 128 * 1024 * 1024
+
+
+def _image_decoder():
+    # Prompt creation remains standard-library-only. Importing or checking an
+    # actual image requires a real decoder, never a signature-only fallback.
+    try:
+        from PIL import Image, ImageFile
+    except ImportError as exc:
+        raise ValueError("导入图片需要 Pillow 解码器。请执行 python3 -m pip install -r requirements-image.txt；不安装也可继续生成中文提示词旅行包。") from exc
+    if ImageFile.LOAD_TRUNCATED_IMAGES:
+        raise ValueError("图片解码器必须关闭 LOAD_TRUNCATED_IMAGES。")
+    return Image
+
+
+def _decode_jpeg_strict(data, width, height):
+    # Pillow/libjpeg can recover an incomplete entropy stream even with
+    # LOAD_TRUNCATED_IMAGES=False. Reject those warnings via strict libjpeg-turbo.
+    try:
+        from simplejpeg import decode_jpeg_header, decode_jpeg
+    except ImportError as exc:
+        raise ValueError("JPEG 导入还需要严格解码器，请执行 python3 -m pip install -r requirements-jpeg.txt；PNG 导入只需 Pillow。") from exc
+    try:
+        h, w, colorspace, _ = decode_jpeg_header(data, strict=True)
+        if (w, h) != (width, height):
+            raise ValueError("JPEG 解码器返回的尺寸不一致。")
+        # Dimensions already passed our pixel/byte caps before this allocation.
+        pixels = decode_jpeg(data, colorspace="CMYK" if colorspace in {"CMYK", "YCCK"} else "RGB", strict=True)
+        if pixels.shape[:2] != (height, width):
+            raise ValueError("JPEG 像素尺寸不一致。")
+    except ValueError as exc:
+        raise ValueError("JPEG 像素数据不完整或解码器报告损坏，请重新导出后导入。") from exc
+
+
+def validate_image_bytes(data):
+    if not data or len(data) > MAX_IMAGE_BYTES:
+        raise ValueError("图片不能为空，单张最大三十二兆字节。")
+    if data.startswith(b"\x89PNG\r\n\x1a\n"):
+        if len(data) < 45 or data[-12:] != b"\x00\x00\x00\x00IEND\xaeB`\x82":
             raise ValueError("图片不是完整的 PNG。")
-        w, h = struct.unpack(">II", b[16:24])
-        if not w or not h:
-            raise ValueError("图片尺寸无效。")
-        return "image/png", w, h
-    if b.startswith(b"\xff\xd8") and b.endswith(b"\xff\xd9"):
-        pos = 2
-        while pos + 4 < len(b):
-            if b[pos] != 255:
-                pos += 1
-                continue
-            marker = b[pos + 1]
-            if marker in (0xD8, 0xD9, 0x01) or 0xD0 <= marker <= 0xD7:
-                pos += 2
-                continue
-            length = int.from_bytes(b[pos + 2:pos + 4], "big")
-            if length < 2:
-                break
-            if marker in (0xC0, 0xC1, 0xC2) and pos + 9 <= len(b):
-                h, w = struct.unpack(">HH", b[pos + 5:pos + 9])
-                if w and h:
-                    return "image/jpeg", w, h
-            pos += length + 2
-    raise ValueError("请使用完整 PNG 或 JPEG 图片，其他格式请在图像工具中另存后导入。")
+    elif not (data.startswith(b"\xff\xd8") and data.endswith(b"\xff\xd9")):
+        raise ValueError("请使用完整 PNG 或 JPEG 图片，其他格式请在图像工具中另存后导入。")
+    Image = _image_decoder()
+    try:
+        with Image.open(io.BytesIO(data), formats=["PNG", "JPEG"]) as decoded:
+            width, height = decoded.size
+            if not width or not height or width * height > MAX_IMAGE_PIXELS or width * height * 4 > MAX_DECODED_BYTES:
+                raise ValueError("图片尺寸过大，最多三千二百万像素、128 MiB 像素缓冲区。")
+            if getattr(decoded, "n_frames", 1) != 1:
+                raise ValueError("请将动画另存为单张 PNG 或 JPEG 后导入。")
+            mime = "image/png" if decoded.format == "PNG" else "image/jpeg"
+            decoded.verify()
+        # verify() checks the container, but only load() decodes the pixels.
+        # Reopen the same bounded immutable snapshot after verify().
+        with Image.open(io.BytesIO(data), formats=["PNG", "JPEG"]) as decoded:
+            decoded.load()
+    except (OSError, SyntaxError, IndexError, Image.DecompressionBombError) as exc:
+        raise ValueError("图片无法完整解码，请在图像工具中重新导出 PNG 或 JPEG。") from exc
+    if mime == "image/jpeg":
+        _decode_jpeg_strict(data, width, height)
+    return mime, width, height
+
+
+def read_image(path):
+    # A bounded single read prevents growth/changes between validation, hashing,
+    # copying and HTML embedding from creating a false success receipt.
+    with Path(path).open("rb") as source:
+        data = source.read(MAX_IMAGE_BYTES + 1)
+    return data, validate_image_bytes(data)
+
+
+def image_info(path):
+    return read_image(path)[1]
+
+
+def _publish_attachment(folder, updates):
+    """Stage all files first; restore prior files after a publication failure.
+
+    Each replacement is atomic, with trip.json published last. This is rollback
+    for caught I/O failures, not a multi-file transaction across a process crash.
+    """
+    staging = Path(tempfile.mkdtemp(prefix=".attach-", dir=folder))
+    staged = []
+    published = []
+    created_directories = []
+    keep_backups = False
+    try:
+        for index, (target, data) in enumerate(updates):
+            if target.is_symlink() or (target.exists() and not target.is_file()):
+                raise ValueError("相册输出必须是普通文件，不能是符号链接。")
+            new = staging / f"{index}.new"
+            with new.open("wb") as stream:
+                stream.write(data)
+                stream.flush()
+                os.fsync(stream.fileno())
+            backup = None
+            if target.exists():
+                backup = staging / f"{index}.old"
+                shutil.copyfile(target, backup)
+            staged.append((target, new, backup))
+        for target, new, backup in staged:
+            if not target.parent.exists():
+                target.parent.mkdir()
+                created_directories.append(target.parent)
+            os.replace(new, target)
+            published.append((target, backup))
+    except BaseException:
+        try:
+            for target, backup in reversed(published):
+                if backup is None:
+                    target.unlink()
+                else:
+                    os.replace(backup, target)
+            for directory in reversed(created_directories):
+                directory.rmdir()
+        except OSError as exc:
+            # Keep the recovery files if the filesystem also rejects rollback.
+            keep_backups = True
+            raise OSError(f"导入失败且无法完全恢复，原文件备份保留于 {staging}") from exc
+        raise
+    finally:
+        if not keep_backups:
+            shutil.rmtree(staging)
 
 
 def attach(folder, shot_id, image, source="user_import"):
@@ -201,22 +300,28 @@ def attach(folder, shot_id, image, source="user_import"):
         raise ValueError("不存在这个镜头编号。")
     if source not in ("user_import", "native_generation", "heige_image"):
         raise ValueError("未知图片来源。")
-    image = Path(image)
-    mime, width, height = image_info(image)
-    digest = hashlib.sha256(image.read_bytes()).hexdigest()
+    payload, (mime, width, height) = read_image(image)
+    digest = hashlib.sha256(payload).hexdigest()
     relative = "images/" + shot_id + "-" + digest[:12] + (".png" if mime == "image/png" else ".jpg")
     dest = folder / relative
-    dest.parent.mkdir(exist_ok=True)
-    if not dest.exists():
-        shutil.copyfile(image, dest)
+    if dest.parent.is_symlink() or dest.is_symlink():
+        raise ValueError("相册图片输出不能是符号链接。")
+    if dest.exists() and read_image(dest)[0] != payload:
+        raise ValueError("同名相册图片与本次内容不一致，原文件已保留。")
     previous = shot.get("image")
     if previous and previous != relative:
         shot.setdefault("history", []).append(previous)
     shot.update(image=relative, status="image_attached", receipt={"source": source, "sha256": digest, "width": width, "height": height, "imported_at": datetime.now(timezone.utc).isoformat(), "visual_review": "pending"})
     pack["status"] = "images_attached" if all(s.get("image") for s in pack["shots"]) else "partial_images"
-    (folder / "相册.html").write_text(render_album(pack, folder), encoding="utf-8")
-    (folder / "旅行包.md").write_text(markdown(pack), encoding="utf-8")
-    (folder / "trip.json").write_text(json.dumps(pack, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    # Render and validate every image before changing any output or receipt.
+    album = render_album(pack, folder, image_overrides={relative: (payload, (mime, width, height))})
+    updates = [] if dest.exists() else [(dest, payload)]
+    updates += [
+        (folder / "相册.html", album.encode("utf-8")),
+        (folder / "旅行包.md", markdown(pack).encode("utf-8")),
+        (folder / "trip.json", (json.dumps(pack, ensure_ascii=False, indent=2) + "\n").encode("utf-8")),
+    ]
+    _publish_attachment(folder, updates)
     return dest
 
 
