@@ -1,0 +1,2 @@
+# Optional: complete PNG/JPEG decoding for image import and reference validation.
+Pillow==12.3.0

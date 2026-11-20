@@ -32,3 +32,9 @@
 * [WorkBuddy 本地工作台](https://www.workbuddy.ai/docs/zh/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Task-Bar)
 
 文档兼容、ZIP 结构验证、独立 Agent 行为测试和 WorkBuddy 应用实测是不同证据。各项状态见 VERIFICATION.md，不用「兼容」替代「已实测」。
+
+## 图片导入的可选依赖
+
+提示词、目的地列表与网页构建仍只需 Python 3.10+ 标准库。导入 PNG/JPEG 或检查参考图需要 `python3 -m pip install -r requirements-image.txt`（Pillow 12.3.0）；JPEG 另需 `python3 -m pip install -r requirements-jpeg.txt`，安装 simplejpeg 1.9.0 与 NumPy（Python 3.10 固定 2.2.6，Python 3.11+ 固定 2.3.5），增加数十 MB 安装体积；安装失败或离线未安装时可继续提示词流程，不能把只验文件头的图片标记为导入成功。依赖文件也包含在发布 ZIP 中。
+
+[官方 simplejpeg 1.9.0](https://pypi.org/project/simplejpeg/1.9.0/) 提供常用 CPython 3.10–3.14 的 Linux glibc x64/arm64、Windows x64、macOS x64/arm64 wheel，采用 MIT 许可并有 PyPI Trusted Publishing 来源记录。其他平台可能需要自行编译；本项目不自动编译或安装系统工具，无法安装时请继续提示词流程或在图像工具中另存 PNG。严格解码拒绝解码器报告的错误与警告，不保证识别所有能正常解码的像素改动，也不判定照片语义。

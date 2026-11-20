@@ -1,0 +1,6 @@
+# Optional strict JPEG decoding; PNG-only import needs requirements-image.txt.
+-r requirements-image.txt
+simplejpeg==1.9.0
+# NumPy 2.2 is the final line supporting Python 3.10.
+numpy==2.2.6; python_version < "3.11"
+numpy==2.3.5; python_version >= "3.11"
