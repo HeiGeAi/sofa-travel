@@ -81,7 +81,7 @@ python3 scripts/travel.py plan --destination 冰岛 --count 6 --platform doubao 
 
 输出旅行包、独立提示词和相册。`--mode faceless` 不露脸，`--mode duo` 双人，`--mode pet` 宠物独照，`--mode pet_pair` 人与宠物同框；`--style film` 电影感，`--style playful` 幽默；`--destination surprise --seed 42` 可复现抽签。
 
-生成工具返回照片后可导入。此步骤需要 Pillow 完整解码器（只需安装一次）；未安装时仍可生成提示词旅行包：
+生成工具返回照片后可导入。此步骤需要 Python 3.11+ 与 Pillow 完整解码器；未安装时仍可生成提示词旅行包：
 
 ```bash
 python3 -m pip install -r requirements-image.txt

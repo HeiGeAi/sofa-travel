@@ -19,6 +19,6 @@ assets 中 reference、paris-01、paris-02、paris-03 为本项目通过原生�
 
 These packages are installed separately from PyPI, not vendored in the release ZIP:
 
-* [Pillow 12.3.0](https://pypi.org/project/Pillow/12.3.0/): MIT-CMU license; PNG and JPEG container/pixel decoding.
+* [Pillow 13.0.0](https://pypi.org/project/Pillow/13.0.0/): MIT-CMU license; PNG and JPEG container/pixel decoding.
 * [simplejpeg 1.9.0](https://pypi.org/project/simplejpeg/1.9.0/): MIT license, Joachim Folz; strict JPEG decoding through its bundled libjpeg-turbo. Upstream wheels carry their library notices.
 * [NumPy](https://numpy.org/doc/stable/license.html): BSD-3-Clause; simplejpeg output buffers. Requirements pin 2.2.6 for Python 3.10 and 2.3.5 for Python 3.11+.
